@@ -268,7 +268,14 @@ COMMAND is the bash command string to execute."
                   (when (memq (process-status process) '(exit signal))
                     (let* ((exit-code (process-exit-status process))
                            (output (with-current-buffer (process-buffer process)
-                                     (buffer-string))))
+                                     ;; Sanitize: replace raw bytes (encoded as
+                                     ;; codepoints in the #x3FFF80..#x3FFFFF
+                                     ;; "raw-byte" range by Emacs) with "?" so
+                                     ;; that json-serialize doesn't choke on
+                                     ;; binary command output.
+                                     (replace-regexp-in-string
+                                      "[\x3FFF80-\x3FFFFF]" "?"
+                                      (string-to-multibyte (buffer-string))))))
                       (kill-buffer (process-buffer process))
                       (funcall callback
                                (if (zerop exit-code)

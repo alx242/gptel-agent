@@ -1381,7 +1381,7 @@ ARG-VALUES is a list: (type description prompt)"
                "\n" gptel-agent--hrule
                (propertize (concat (capitalize agent-type) " Task: ")
                            'face 'font-lock-escape-face)
-               (propertize description 'face 'font-lock-doc-face)
+               (propertize (or description "(no description)") 'face 'font-lock-doc-face)
                (propertize
                 " " 'display
                 (if (and (display-graphic-p) (fboundp 'string-pixel-width))

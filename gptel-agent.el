@@ -117,6 +117,17 @@ See https://agentskills.io for more details on agentskills."
   :type '(repeat directory)
   :group 'gptel-agent)
 
+(defcustom gptel-agent-default-max-tokens nil
+  "Default value for `gptel-max-tokens' in `gptel-agent' buffers.
+
+When nil, do not set `gptel-max-tokens' automatically.  This lets
+backends/models that do not support an explicit response token cap omit
+the corresponding request parameter.  Set this to an integer, such as
+8192, to request a higher response token limit for agent sessions."
+  :type '(choice (const :tag "Do not set" nil)
+                 (integer :tag "Token limit"))
+  :group 'gptel-agent)
+
 (defcustom gptel-agent-compact-prompt
   "Purpose: To create a comprehensive record that ensures no important details or context are lost between sessions.
 This process prioritizes thoroughness over brevity to retain all critical information.
@@ -687,8 +698,9 @@ this session, which defaults to the default `gptel-agent'."
       (gptel--apply-preset              ;Apply the gptel-agent preset
        (or agent-preset 'gptel-agent)
        (lambda (sym val) (set (make-local-variable sym) val)))
-      (unless gptel-max-tokens              ;Agent tasks typically need
-        (setq-local gptel-max-tokens 8192)) ;a higher than usual value
+      (when (and gptel-agent-default-max-tokens
+                 (not gptel-max-tokens))
+        (setq-local gptel-max-tokens gptel-agent-default-max-tokens))
       (when gptel-use-header-line
         (let* ((agent-mode t)
                (switch-mode
